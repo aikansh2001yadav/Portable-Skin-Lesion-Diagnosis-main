@@ -4,7 +4,7 @@ from sklearn.preprocessing import LabelEncoder
 import tensorflow as tf
 from tensorflow.keras.models import load_model
 
-import experiment.isic.config as config
+import config
 
 
 def set_random_seeds() -> None:
