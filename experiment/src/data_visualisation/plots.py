@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 
-import config
+import experiment.isic.config as config
 from utils import save_output_figure
 
 

@@ -1,7 +1,7 @@
 import tensorflow as tf
 import tensorflow_io as tfio
 
-import config
+import experiment.isic.config as config
 
 
 def create_dataset(x, y):

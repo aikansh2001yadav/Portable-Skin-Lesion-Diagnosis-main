@@ -8,7 +8,7 @@ from sklearn.utils import class_weight
 from tensorflow.keras.preprocessing.image import img_to_array, load_img
 from tensorflow.keras.utils import to_categorical
 
-import config
+import experiment.isic.config as config
 
 
 def import_minimias_dataset(data_dir: str, label_encoder) -> (np.ndarray, np.ndarray):

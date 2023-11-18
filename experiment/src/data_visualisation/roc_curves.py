@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.metrics import auc, roc_curve
 
-import config
+import experiment.isic.config as config
 from utils import save_output_figure
 
 

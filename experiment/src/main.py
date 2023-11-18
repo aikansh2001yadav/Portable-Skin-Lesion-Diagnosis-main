@@ -5,7 +5,7 @@ import time
 import numpy as np
 
 from cnn_models.cnn_model import CnnModel, test_model_evaluation
-import config
+import experiment.isic.config as config
 from data_operations.dataset_feed import create_dataset
 from data_operations.data_preprocessing import calculate_class_weights, dataset_stratified_split, \
     import_cbisddsm_testing_dataset, import_cbisddsm_training_dataset, import_minimias_dataset

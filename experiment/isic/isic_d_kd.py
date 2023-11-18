@@ -31,7 +31,7 @@ from src.utils import create_label_encoder
 from src.data_operations.data_preprocessing import calculate_class_weights, import_minimias_dataset, dataset_stratified_split
 from src.data_operations.data_transformations import generate_image_transforms
 import numpy as np
-import src.config as config
+import experiment.isic.config as config
 from collections import Counter
 
 

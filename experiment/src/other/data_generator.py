@@ -3,7 +3,7 @@ import pydicom
 from tensorflow.keras.utils import Sequence
 from skimage.transform import resize
 
-import config
+import experiment.isic.config as config
 
 # Will need to encode categories before calling the Data Generator
 # Also before implement split for validation and train include shuffling

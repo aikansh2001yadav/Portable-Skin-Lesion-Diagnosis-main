@@ -8,7 +8,7 @@ from skimage.transform import resize
 import tensorflow as tf
 import tensorflow_io as tfio
 
-import config
+import experiment.isic.config as config
 from data_operations.dataset_feed import create_dataset
 from data_operations.data_preprocessing import dataset_stratified_split
 

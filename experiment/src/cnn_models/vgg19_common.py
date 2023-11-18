@@ -4,7 +4,7 @@ from tensorflow.keras.applications import VGG19
 from tensorflow.keras.layers import Concatenate, Dense, Dropout, Flatten, Input
 from tensorflow.python.keras import Sequential
 
-import config
+import experiment.isic.config as config
 
 # Needed to download pre-trained weights for ImageNet
 ssl._create_default_https_context = ssl._create_unverified_context

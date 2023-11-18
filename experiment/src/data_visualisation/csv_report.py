@@ -1,7 +1,7 @@
 import pandas as pd
 from sklearn.metrics import classification_report
 
-import config
+import experiment.isic.config as config
 
 
 def generate_csv_report(y_true_inv, y_pred_inv, label_encoder, accuracy) -> None:
