@@ -18,14 +18,19 @@ sys.path.insert(0,RAUG_PATH)
 from aug_isic import ImgTrainTransform, ImgEvalTransform
 from sacred import Experiment
 from sacred.observers import FileStorageObserver
-from raug.utils.loader import get_labels_frequency
-from raug.loader import get_data_loader
-from raug.train import fit_model
-from raug.train_kd import fit_model_kd
-from raug.eval_kd import test_model_kd
+from raug.raug.utils.loader import get_labels_frequency
+from raug.raug.loader import get_data_loader
+from raug.raug.train import fit_model
+from raug.raug.train_kd import fit_model_kd
+from raug.raug.eval_kd import test_model_kd
 
 from my_model import set_model, get_activation_fn, get_activations, ConvReg
 from kd_losses import D_KD
+
+from src.utils import create_label_encoder, load_trained_model
+from src.data_operations.dataset_feed import create_dataset
+from src.data_operations.data_preprocessing import calculate_class_weights, dataset_stratified_split, \
+    import_cbisddsm_testing_dataset, import_cbisddsm_training_dataset
 
 
 os.environ["CUDA_VISIBLE_DEVICES"]="0"
@@ -100,75 +105,92 @@ def main (_folder, _csv_path_train, _imgs_folder_train, _csv_path_test, _imgs_fo
         'normalize_conf_matrix': True}
     _checkpoint_best = os.path.join(_save_folder, 'best-checkpoint/best-checkpoint.pth')
 
-    # Loading the csv file
-    csv_all_folders = pd.read_csv(_csv_path_train)
+    # Create label encoder.
+    l_e = create_label_encoder()
 
-    print("-" * 50)
-    print("- Loading validation data...")
-    val_csv_folder = csv_all_folders[ (csv_all_folders['folder'] == _folder) ]
-    train_csv_folder = csv_all_folders[ csv_all_folders['folder'] != _folder ]
+    images_training, labels_training = import_cbisddsm_training_dataset(l_e)
+
+    # Split training dataset into training/validation sets (75%/25% split).
+    X_train, X_val, y_train, y_val = dataset_stratified_split(split=0.25, dataset=images_training, labels=labels_training)
+    train_dataset = create_dataset(X_train, y_train)
+    validation_dataset = create_dataset(X_val, y_val)
+
+    # Calculate class weights.
+    class_weights = calculate_class_weights(y_train, l_e)
+
+    images_testing, labels_testing = import_cbisddsm_testing_dataset(l_e)
+    test_dataset = create_dataset(images_testing, labels_testing)
+
+
+    # # Loading the csv file
+    # csv_all_folders = pd.read_csv(_csv_path_train)
+
+    # print("-" * 50)
+    # print("- Loading validation data...")
+    # val_csv_folder = csv_all_folders[ (csv_all_folders['folder'] == _folder) ]
+    # train_csv_folder = csv_all_folders[ csv_all_folders['folder'] != _folder ]
     
     
-    ####################################################################################################################
+    # ####################################################################################################################
 
-    # Loading validation data
-    val_imgs_id = val_csv_folder['image'].values
-    val_imgs_path = ["{}/{}.jpg".format(_imgs_folder_train, img_id) for img_id in val_imgs_id]
-    val_labels = val_csv_folder['diagnostic_number'].values
-    if _use_meta_data:
-        val_meta_data = val_csv_folder[meta_data_columns].values
-        print("-- Using {} meta-data features".format(len(meta_data_columns)))
-    else:
-        print("-- No metadata")
-        val_meta_data = None
-    val_data_loader = get_data_loader (val_imgs_path, val_labels, val_meta_data, transform=ImgEvalTransform(),
-                                       batch_size=_batch_size, shuf=True, num_workers=16, pin_memory=True)
-    print("-- Validation partition loaded with {} images".format(len(val_data_loader)*_batch_size))
+    # # Loading validation data
+    # val_imgs_id = val_csv_folder['image'].values
+    # val_imgs_path = ["{}/{}.jpg".format(_imgs_folder_train, img_id) for img_id in val_imgs_id]
+    # val_labels = val_csv_folder['diagnostic_number'].values
+    # if _use_meta_data:
+    #     val_meta_data = val_csv_folder[meta_data_columns].values
+    #     print("-- Using {} meta-data features".format(len(meta_data_columns)))
+    # else:
+    #     print("-- No metadata")
+    #     val_meta_data = None
+    # val_data_loader = get_data_loader (val_imgs_path, val_labels, val_meta_data, transform=ImgEvalTransform(),
+    #                                    batch_size=_batch_size, shuf=True, num_workers=16, pin_memory=True)
+    # print("-- Validation partition loaded with {} images".format(len(val_data_loader)*_batch_size))
 
-    # Loading training data
-    print("- Loading training data...")
-    train_imgs_id = train_csv_folder['image'].values
-    train_imgs_path = ["{}/{}.jpg".format(_imgs_folder_train, img_id) for img_id in train_imgs_id]
-    train_labels = train_csv_folder['diagnostic_number'].values
-    if _use_meta_data:
-        train_meta_data = train_csv_folder[meta_data_columns].values
-        print("-- Using {} meta-data features".format(len(meta_data_columns)))
-    else:
-        print("-- No metadata")
-        train_meta_data = None
-    train_data_loader = get_data_loader (train_imgs_path, train_labels, train_meta_data, transform=ImgTrainTransform(),
-                                       batch_size=_batch_size, shuf=True, num_workers=16, pin_memory=True)  #16
-    print("-- Training partition loaded with {} images".format(len(train_data_loader)*_batch_size))
+    # # Loading training data
+    # print("- Loading training data...")
+    # train_imgs_id = train_csv_folder['image'].values
+    # train_imgs_path = ["{}/{}.jpg".format(_imgs_folder_train, img_id) for img_id in train_imgs_id]
+    # train_labels = train_csv_folder['diagnostic_number'].values
+    # if _use_meta_data:
+    #     train_meta_data = train_csv_folder[meta_data_columns].values
+    #     print("-- Using {} meta-data features".format(len(meta_data_columns)))
+    # else:
+    #     print("-- No metadata")
+    #     train_meta_data = None
+    # train_data_loader = get_data_loader (train_imgs_path, train_labels, train_meta_data, transform=ImgTrainTransform(),
+    #                                    batch_size=_batch_size, shuf=True, num_workers=16, pin_memory=True)  #16
+    # print("-- Training partition loaded with {} images".format(len(train_data_loader)*_batch_size))
 
 
-    # Loading test data
-    csv_test = pd.read_csv(_csv_path_test)
-    test_imgs_id = csv_test['image'].values
-    test_imgs_path = ["{}/{}.jpg".format(_imgs_folder_test, img_id) for img_id in test_imgs_id]
-    test_labels = csv_test['diagnostic_number'].values
-    csv_test['lateral torso'] = 0
-    if _use_meta_data:
-        test_meta_data = csv_test[meta_data_columns].values
-        print("-- Using {} meta-data features".format(len(meta_data_columns)))
-    else:
-        test_meta_data = None
-        print("-- No metadata")
+    # # Loading test data
+    # csv_test = pd.read_csv(_csv_path_test)
+    # test_imgs_id = csv_test['image'].values
+    # test_imgs_path = ["{}/{}.jpg".format(_imgs_folder_test, img_id) for img_id in test_imgs_id]
+    # test_labels = csv_test['diagnostic_number'].values
+    # csv_test['lateral torso'] = 0
+    # if _use_meta_data:
+    #     test_meta_data = csv_test[meta_data_columns].values
+    #     print("-- Using {} meta-data features".format(len(meta_data_columns)))
+    # else:
+    #     test_meta_data = None
+    #     print("-- No metadata")
 
-    _metric_options = {
-        'save_all_path': os.path.join(_save_folder, "test_pred"),
-        'pred_name_scores': 'predictions.csv',
-    }
-    test_data_loader = get_data_loader(test_imgs_path, test_labels, test_meta_data, transform=ImgEvalTransform(),
-                                        batch_size=_batch_size, shuf=False, num_workers=16, pin_memory=True)   
+    # _metric_options = {
+    #     'save_all_path': os.path.join(_save_folder, "test_pred"),
+    #     'pred_name_scores': 'predictions.csv',
+    # }
+    # test_data_loader = get_data_loader(test_imgs_path, test_labels, test_meta_data, transform=ImgEvalTransform(),
+    #                                     batch_size=_batch_size, shuf=False, num_workers=16, pin_memory=True)   
     
-    print("-"*50)
-    ####################################################################################################################
+    # print("-"*50)
+    # ####################################################################################################################
 
-    ser_lab_freq = get_labels_frequency(train_csv_folder, "diagnostic", "image")
-    _labels_name = ser_lab_freq.index.values
-    _freq = ser_lab_freq.values
-    if _weights == 'frequency':
-        _weights = (_freq.sum() / _freq).round(3)   
+    # ser_lab_freq = get_labels_frequency(train_csv_folder, "diagnostic", "image")
+    # _labels_name = ser_lab_freq.index.values
+    # _freq = ser_lab_freq.values
+    # if _weights == 'frequency':
+    #     _weights = (_freq.sum() / _freq).round(3)   
 
     ####################################################################################################################
 
@@ -194,7 +216,7 @@ def main (_folder, _csv_path_train, _imgs_folder_train, _csv_path_test, _imgs_fo
     model_t_ckpt_path = "results/" + str(_comb_method) + "_" + _model_name_teacher + \
                         "_fold_" + str(_folder) + "/best-checkpoint/best-checkpoint.pth"
 
-    net_t = set_model(_model_name_teacher, len(_labels_name), pretrained=_pretrained, 
+    net_t = set_model(_model_name_teacher, len(labels_training), pretrained=_pretrained, 
                         neurons_reducer_block=_neurons_reducer_block)
 
     print("- Loading pretrained models...")
@@ -206,7 +228,7 @@ def main (_folder, _csv_path_train, _imgs_folder_train, _csv_path_test, _imgs_fo
 
     ### Student model
     print("- Loading", _model_name_student) 
-    model_s = set_model(_model_name_student, len(_labels_name), 
+    model_s = set_model(_model_name_student, len(labels_training), 
                             pretrained=_pretrained, neurons_reducer_block=_neurons_reducer_block)
 
     model_s = model_s.to(device)
@@ -246,7 +268,7 @@ def main (_folder, _csv_path_train, _imgs_folder_train, _csv_path_test, _imgs_fo
     print("- Starting the training phase...")
     print("-" * 50)
 
-    fit_model_kd (models, train_data_loader, val_data_loader, optimizer=optimizer, feat_fn=feat_fn, loss_fn=loss_fn, epochs=_epochs,
+    fit_model_kd (models, train_dataset, validation_dataset, optimizer=optimizer, feat_fn=feat_fn, loss_fn=loss_fn, epochs=_epochs,
                epochs_early_stop=_early_stop, save_folder=_save_folder, initial_model=None,
                device=None, schedule_lr=scheduler_lr, config_bot=None, model_name="CNN", resume_train=False,
                history_plot=True, val_metrics=["balanced_accuracy"], best_metric=_best_metric)
@@ -255,8 +277,8 @@ def main (_folder, _csv_path_train, _imgs_folder_train, _csv_path_test, _imgs_fo
     # Testing the test partition
     print("- Evaluating the test partition...")
     
-    test_model_kd (models, test_data_loader, checkpoint_path=_checkpoint_best, feat_fn=feat_fn, loss_fn=loss_fn, save_pred=True,
-                partition_name='test', metrics_to_comp='all', class_names=_labels_name, metrics_options=_metric_options,
+    test_model_kd (models, test_dataset, checkpoint_path=_checkpoint_best, feat_fn=feat_fn, loss_fn=loss_fn, save_pred=True,
+                partition_name='test', metrics_to_comp='all', class_names=labels_testing, metrics_options=_metric_options,
                 apply_softmax=True, verbose=False)
     
     torch.cuda.empty_cache()
