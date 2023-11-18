@@ -24,14 +24,14 @@ ROI_IMG_SIZE = {
 }
 
 # Variables set by command line arguments/flags
-dataset = "CBIS-DDSM"       # The dataset to use.
+dataset = "mini-MIAS"       # The dataset to use.
 mammogram_type = "all"      # The type of mammogram (Calc or Mass).
-model = "VGG"               # The model to use.
+model = "ResNet"               # The model to use.
 run_mode = "training"       # The type of running mode, either training or testing.
 learning_rate = 1e-3        # The learning rate with the pre-trained ImageNet layers frozen.
 batch_size = 2              # Batch size.
-max_epoch_frozen = 100      # Max number of epochs when original CNN layers are frozen.
-max_epoch_unfrozen = 50     # Max number of epochs when original CNN layers are unfrozen.
+max_epoch_frozen = 10      # Max number of epochs when original CNN layers are frozen.
+max_epoch_unfrozen = 10     # Max number of epochs when original CNN layers are unfrozen.
 is_roi = False              # Use cropped version of the images
 verbose_mode = False        # Boolean used to print additional logs for debugging purposes.
 name = ""                   # Name of experiment.
