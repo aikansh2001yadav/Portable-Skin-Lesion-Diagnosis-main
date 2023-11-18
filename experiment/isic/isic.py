@@ -10,10 +10,10 @@ sys.path.insert(0,'../')
 sys.path.insert(0,'../my_models') 
 from constants import RAUG_PATH
 sys.path.insert(0,RAUG_PATH)
-from raug.loader import get_data_loader
-from raug.train import fit_model
-from raug.train_kd import fit_model_kd
-from raug.eval import test_model
+from raug.raug.loader import get_data_loader
+from raug.raug.train import fit_model
+from raug.raug.train_kd import fit_model_kd
+from raug.raug.eval import test_model
 from my_model import set_model
 import pandas as pd
 import os
@@ -24,7 +24,7 @@ from aug_isic import ImgTrainTransform, ImgEvalTransform
 import time
 from sacred import Experiment
 from sacred.observers import FileStorageObserver
-from raug.utils.loader import get_labels_frequency
+from raug.raug.utils.loader import get_labels_frequency
 
 
 os.environ["CUDA_VISIBLE_DEVICES"]="0"

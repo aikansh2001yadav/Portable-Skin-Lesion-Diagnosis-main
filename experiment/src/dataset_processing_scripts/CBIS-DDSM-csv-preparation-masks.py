@@ -23,9 +23,9 @@ def main() -> None:
     
     :return: None
     """
-    csv_root = '../data/CBIS-DDSM/ori_csv'      # original csv folder
-    img_root = '/cs/tmp/datasets/CBIS-DDSM'     # dataset folder
-    csv_output_path = '../data/CBIS-DDSM-mask'       # csv output folder
+    csv_root = '/content/drive/MyDrive/archive/csv'      # original csv folder
+    img_root = '/content/drive/MyDrive/archive/jpeg'     # dataset folder
+    csv_output_path = '/content/drive/MyDrive/archive/output-mask'       # csv output folder
 
     folders = os.listdir(img_root)
 

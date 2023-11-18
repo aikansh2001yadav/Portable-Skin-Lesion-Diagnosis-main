@@ -6,13 +6,13 @@ def main() -> None:
     Folder to adjust csv to remove images with multiple masks i.e. when they have multiple tumours.
     Originally written as a group for the common pipeline.
     """
-    csv_mask_root_file = '../data/CBIS-DDSM-mask/training.csv'
-    csv_image_root_file = '../data/CBIS-DDSM/training.csv'
+    csv_mask_root_file = '/content/drive/MyDrive/archive/output-mask/training.csv'
+    csv_image_root_file = '/content/drive/MyDrive/archive/output/training.csv'
 
-    csv_mask_root_file_testing = '../data/CBIS-DDSM-mask/testing.csv'
-    csv_image_root_file_testing = '../data/CBIS-DDSM/testing.csv'
+    csv_mask_root_file_testing = '/content/drive/MyDrive/archive/output-mask/testing.csv'
+    csv_image_root_file_testing = '/content/drive/MyDrive/archive/output/testing.csv'
 
-    csv_output_path = '../data/CBIS-DDSM-mask'  # csv output folder
+    csv_output_path = '/content/drive/MyDrive/archive/output-mask'  # csv output folder
 
     join_paths_and_remove_duplicates(csv_mask_root_file, csv_image_root_file, "shortened_mask_training",
                                      csv_output_path)

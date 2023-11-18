@@ -54,11 +54,11 @@ def import_cbisddsm_training_dataset(label_encoder):
     print("Importing CBIS-DDSM training set")
     cbis_ddsm_path = str()
     if config.mammogram_type == "calc":
-        cbis_ddsm_path = "../data/CBIS-DDSM/calc-training.csv"
+        cbis_ddsm_path = "/content/drive/MyDrive/archive/output/calc-training.csv"
     elif config.mammogram_type == "mass":
-        cbis_ddsm_path = "../data/CBIS-DDSM/mass-training.csv"
+        cbis_ddsm_path = "/content/drive/MyDrive/archive/output/mass-training.csv"
     else:
-        cbis_ddsm_path = "../data/CBIS-DDSM/training.csv"
+        cbis_ddsm_path = "/content/drive/MyDrive/archive/output/training.csv"
     df = pd.read_csv(cbis_ddsm_path)
     list_IDs = df['img_path'].values
     labels = encode_labels(df['label'].values, label_encoder)
@@ -74,11 +74,11 @@ def import_cbisddsm_testing_dataset(label_encoder):
     print("Importing CBIS-DDSM testing set")
     cbis_ddsm_path = str()
     if config.mammogram_type == "calc":
-        cbis_ddsm_path = "../data/CBIS-DDSM/calc-test.csv"
+        cbis_ddsm_path = "/content/drive/MyDrive/archive/output/calc-test.csv"
     elif config.mammogram_type == "mass":
-        cbis_ddsm_path = "../data/CBIS-DDSM/mass-test.csv"
+        cbis_ddsm_path = "/content/drive/MyDrive/archive/output/mass-test.csv"
     else:
-        cbis_ddsm_path = "../data/CBIS-DDSM/testing.csv"
+        cbis_ddsm_path = "/content/drive/MyDrive/archive/output/testing.csv"
     df = pd.read_csv(cbis_ddsm_path)
     list_IDs = df['img_path'].values
     labels = encode_labels(df['label'].values, label_encoder)
