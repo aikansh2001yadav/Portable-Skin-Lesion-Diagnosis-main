@@ -8,7 +8,7 @@ from sklearn.utils import class_weight
 from tensorflow.keras.preprocessing.image import img_to_array, load_img
 from tensorflow.keras.utils import to_categorical
 
-import experiment.isic.config as config
+import config
 
 
 def import_minimias_dataset(data_dir: str, label_encoder) -> (np.ndarray, np.ndarray):
@@ -100,7 +100,7 @@ def preprocess_image(image_path: str) -> np.ndarray:
     if not config.is_roi:
         if config.model == "VGG" or config.model == "Inception":
             target_size = (config.MINI_MIAS_IMG_SIZE['HEIGHT'], config.MINI_MIAS_IMG_SIZE["WIDTH"])
-        elif config.model == "VGG-common":
+        elif config.model == "VGG-common" or config.model == "ResNet":
             target_size = (config.VGG_IMG_SIZE['HEIGHT'], config.VGG_IMG_SIZE["WIDTH"])
         elif config.model == "MobileNet":
             target_size = (config.MOBILE_NET_IMG_SIZE['HEIGHT'], config.MOBILE_NET_IMG_SIZE["WIDTH"])

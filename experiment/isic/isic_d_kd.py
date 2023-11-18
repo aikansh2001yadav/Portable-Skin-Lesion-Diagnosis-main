@@ -31,7 +31,7 @@ from src.utils import create_label_encoder
 from src.data_operations.data_preprocessing import calculate_class_weights, import_minimias_dataset, dataset_stratified_split
 from src.data_operations.data_transformations import generate_image_transforms
 import numpy as np
-import experiment.isic.config as config
+import config
 from collections import Counter
 
 
@@ -123,7 +123,7 @@ def main (_folder, _csv_path_train, _imgs_folder_train, _csv_path_test, _imgs_fo
                                                                 labels=y_train)
 
     # Calculate class weights.
-    class_weights = calculate_class_weights(y_train, l_e)
+    # class_weights = calculate_class_weights(y_train, l_e)
 
     # Data augmentation.
     y_train_before_data_aug = y_train

@@ -6,7 +6,7 @@ from tensorflow.python.keras.models import Model
 from tensorflow.python.keras import Sequential
 from tensorflow.python.keras.layers import Conv2D, MaxPooling2D
 
-import experiment.isic.config as config
+import config
 
 # Required to download pre-trained weights for ImageNet (stored in ~/.keras/models/)
 ssl._create_default_https_context = ssl._create_unverified_context

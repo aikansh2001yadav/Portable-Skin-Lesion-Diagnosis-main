@@ -2,7 +2,7 @@ from tensorflow.keras.layers import Dense, Dropout, Flatten
 from tensorflow.python.keras import Sequential
 from tensorflow.python.keras.layers import Conv2D, MaxPooling2D
 
-import experiment.isic.config as config
+import config
 
 
 def create_basic_cnn_model(num_classes: int):

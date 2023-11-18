@@ -4,7 +4,7 @@ import numpy as np
 import skimage as sk
 import skimage.transform
 
-import experiment.isic.config as config
+import config
 
 
 def generate_image_transforms(images, labels):

@@ -9,7 +9,7 @@ from tensorflow.keras.metrics import BinaryAccuracy, CategoricalAccuracy, Sparse
 from tensorflow.keras.optimizers import Adam
 from tensorflow.python.keras.callbacks import EarlyStopping, ReduceLROnPlateau
 
-import experiment.isic.config as config
+import config
 from cnn_models.basic_cnn import create_basic_cnn_model
 from cnn_models.densenet121 import create_densenet121_model
 from cnn_models.inceptionv3 import create_inceptionv3_model
