@@ -56,7 +56,7 @@ def cnfg():
     _comb_method = None 
     _comb_config = None 
     _batch_size = 128 
-    _epochs = 150 
+    _epochs = 10 
 
     # Training variables
     _best_metric = "loss"
@@ -123,7 +123,7 @@ def main (_folder, _csv_path_train, _imgs_folder_train, _csv_path_test, _imgs_fo
                                                                 labels=y_train)
 
     # Calculate class weights.
-    # class_weights = calculate_class_weights(y_train, l_e)
+    _weights = calculate_class_weights(y_train, l_e)
 
     # Data augmentation.
     y_train_before_data_aug = y_train
@@ -131,13 +131,22 @@ def main (_folder, _csv_path_train, _imgs_folder_train, _csv_path_test, _imgs_fo
     y_train_after_data_aug = y_train
     np.random.shuffle(y_train)
 
-    val_data_loader = get_data_loader (X_val, y_val, None, transform=ImgEvalTransform(),
+    y_train_tensor = torch.tensor(y_train)  # Assuming y_train is a NumPy array
+    y_train_indices = torch.argmax(y_train_tensor, dim=1)
+    
+    y_val_tensor = torch.tensor(y_val)  # Assuming y_val is a NumPy array
+    y_val_indices = torch.argmax(y_val_tensor, dim=1)
+
+    y_test_tensor = torch.tensor(y_test)  # Assuming y_train is a NumPy array
+    y_test_indices = torch.argmax(y_test_tensor, dim=1)
+
+    val_data_loader = get_data_loader (X_val, y_val_indices, None, transform=ImgEvalTransform(),
                                         batch_size=_batch_size, shuf=True, num_workers=16, pin_memory=True)
     
-    train_data_loader = get_data_loader (X_train, y_train, None, transform=ImgTrainTransform(),
+    train_data_loader = get_data_loader (X_train, y_train_indices, None, transform=ImgTrainTransform(),
                                        batch_size=_batch_size, shuf=True, num_workers=16, pin_memory=True)
     
-    test_data_loader = get_data_loader(X_test, y_test, None, transform=ImgEvalTransform(),
+    test_data_loader = get_data_loader(X_test, y_test_indices, None, transform=ImgEvalTransform(),
                                         batch_size=_batch_size, shuf=False, num_workers=16, pin_memory=True)   
 
     if config.verbose_mode:
@@ -249,7 +258,7 @@ def main (_folder, _csv_path_train, _imgs_folder_train, _csv_path_test, _imgs_fo
     model_t_ckpt_path = "results/" + str(_comb_method) + "_" + _model_name_teacher + \
                         "_fold_" + str(_folder) + "/best-checkpoint/best-checkpoint.pth"
 
-    net_t = set_model(_model_name_teacher, len(labels), pretrained=_pretrained, 
+    net_t = set_model(_model_name_teacher, l_e.classes_.size, pretrained=_pretrained, 
                         neurons_reducer_block=_neurons_reducer_block)
 
     print("- Loading pretrained models...")
@@ -261,7 +270,7 @@ def main (_folder, _csv_path_train, _imgs_folder_train, _csv_path_test, _imgs_fo
 
     ### Student model
     print("- Loading", _model_name_student) 
-    model_s = set_model(_model_name_student, len(labels), 
+    model_s = set_model(_model_name_student, l_e.classes_.size, 
                             pretrained=_pretrained, neurons_reducer_block=_neurons_reducer_block)
 
     model_s = model_s.to(device)
@@ -290,7 +299,9 @@ def main (_folder, _csv_path_train, _imgs_folder_train, _csv_path_test, _imgs_fo
     scheduler_lr = optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=_sched_factor, min_lr=_sched_min_lr,
                                                                     patience=_sched_patience) 
     if _use_wce:
-        wce_weight=torch.Tensor(_weights).to(device)
+        weights_list = [v for v in _weights.values()]
+        weights_tensor = torch.Tensor(weights_list).cuda()
+        wce_weight=weights_tensor.to(device)
     else:
         wce_weight=None
     
@@ -311,7 +322,7 @@ def main (_folder, _csv_path_train, _imgs_folder_train, _csv_path_test, _imgs_fo
     print("- Evaluating the test partition...")
     
     test_model_kd (models, test_data_loader, checkpoint_path=_checkpoint_best, feat_fn=feat_fn, loss_fn=loss_fn, save_pred=True,
-                partition_name='test', metrics_to_comp='all', class_names=labels, metrics_options=_metric_options,
+                partition_name='test', metrics_to_comp='all', class_names=l_e.classes_, metrics_options=_metric_options,
                 apply_softmax=True, verbose=False)
     
     torch.cuda.empty_cache()
