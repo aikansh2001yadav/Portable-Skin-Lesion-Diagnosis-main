@@ -64,12 +64,12 @@ class MyDataset (data.Dataset):
         :return (tuple): a tuple containing the image, its label and meta-data (if applicable)
         """
 
-        image = Image.open(self.imgs_path[item]).convert("RGB")
+        image_data = self.imgs_path[item]
 
-        # Applying the transformations
+        image = Image.fromarray(image_data.squeeze()).convert("RGB")
+
         image = self.transform(image)
-
-        img_id = self.imgs_path[item].split('/')[-1].split('.')[0]
+        img_id = -1
 
         if self.meta_data is None:
             meta_data = []

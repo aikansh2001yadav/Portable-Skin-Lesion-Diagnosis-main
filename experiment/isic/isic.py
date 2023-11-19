@@ -55,7 +55,7 @@ def cnfg():
     _comb_method = None 
     _comb_config = None 
     _batch_size = 128 
-    _epochs = 150 
+    _epochs = 10 
 
     # Training variables
     _best_metric = "loss"
@@ -114,13 +114,22 @@ def main (_folder, _csv_path_train, _imgs_folder_train, _csv_path_test, _imgs_fo
     y_train_after_data_aug = y_train
     np.random.shuffle(y_train)
 
-    val_data_loader = get_data_loader (X_val, y_val, None, transform=ImgEvalTransform(),
+    y_train_tensor = torch.tensor(y_train)  # Assuming y_train is a NumPy array
+    y_train_indices = torch.argmax(y_train_tensor, dim=1)
+    
+    y_val_tensor = torch.tensor(y_val)  # Assuming y_val is a NumPy array
+    y_val_indices = torch.argmax(y_val_tensor, dim=1)
+
+    y_test_tensor = torch.tensor(y_test)  # Assuming y_train is a NumPy array
+    y_test_indices = torch.argmax(y_test_tensor, dim=1)
+
+    val_data_loader = get_data_loader (X_val, y_val_indices, None, transform=ImgEvalTransform(),
                                         batch_size=_batch_size, shuf=True, num_workers=16, pin_memory=True)
     
-    train_data_loader = get_data_loader (X_train, y_train, None, transform=ImgTrainTransform(),
+    train_data_loader = get_data_loader (X_train, y_train_indices, None, transform=ImgTrainTransform(),
                                        batch_size=_batch_size, shuf=True, num_workers=16, pin_memory=True)
     
-    test_data_loader = get_data_loader(X_test, y_test, None, transform=ImgEvalTransform(),
+    test_data_loader = get_data_loader(X_test, y_test_indices, None, transform=ImgEvalTransform(),
                                         batch_size=_batch_size, shuf=False, num_workers=16, pin_memory=True)   
 
     if config.verbose_mode:
@@ -178,9 +187,9 @@ def main (_folder, _csv_path_train, _imgs_folder_train, _csv_path_test, _imgs_fo
     # _freq = ser_lab_freq.values
     ####################################################################################################################
     print("- Loading", _model_name)
-    print(len(labels))
+    print(l_e.classes_.size)
 
-    model = set_model(_model_name, len(labels), pretrained=_pretrained, neurons_reducer_block=_neurons_reducer_block)
+    model = set_model(_model_name, l_e.classes_.size, pretrained=_pretrained, neurons_reducer_block=_neurons_reducer_block)
     print(model)
     ####################################################################################################################
     # if _weights == 'frequency':
@@ -205,7 +214,7 @@ def main (_folder, _csv_path_train, _imgs_folder_train, _csv_path_test, _imgs_fo
     # Testing the validation partition
     print("- Evaluating the validation partition...")
     test_model (model, val_data_loader, checkpoint_path=_checkpoint_best, loss_fn=loss_fn, save_pred=True,
-                partition_name='eval', metrics_to_comp='all', class_names=labels, metrics_options=_metric_options,
+                partition_name='eval', metrics_to_comp='all', class_names=l_e.classes_, metrics_options=_metric_options,
                 apply_softmax=True, verbose=False)
     ####################################################################################################################
 
@@ -235,7 +244,7 @@ def main (_folder, _csv_path_train, _imgs_folder_train, _csv_path_test, _imgs_fo
                    
     print("- Evaluating the test partition...")
     test_model (model, test_data_loader, checkpoint_path=_checkpoint_best, loss_fn=loss_fn, save_pred=True,
-                partition_name='Test', metrics_to_comp='all', class_names=labels, metrics_options=_metric_options,
+                partition_name='Test', metrics_to_comp='all', class_names=l_e.classes_, metrics_options=_metric_options,
                 apply_softmax=True, verbose=False)                   
                    
     ####################################################################################################################
