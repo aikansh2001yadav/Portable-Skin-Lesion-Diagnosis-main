@@ -1,5 +1,5 @@
 import os
-
+import cv2
 from imutils import paths
 import numpy as np
 import pandas as pd
@@ -7,6 +7,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.utils import class_weight
 from tensorflow.keras.preprocessing.image import img_to_array, load_img
 from tensorflow.keras.utils import to_categorical
+from src.dataset_processing_scripts.dataset_preparation import import_cbis_dataset
 
 import config
 
@@ -44,7 +45,17 @@ def import_minimias_dataset(data_dir: str, label_encoder) -> (np.ndarray, np.nda
     return images, labels
 
 
-def import_cbisddsm_training_dataset(label_encoder):
+def image_processor(image_path, target_size):
+    """Preprocess images for ResNet50 model"""
+    absolute_image_path = os.path.abspath(image_path)
+    image = cv2.imread(absolute_image_path)
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    image = cv2.resize(image, (target_size[1], target_size[0]))
+    image_array = image / 255.0
+    return image_array
+
+
+def import_cbisddsm_dataset(label_encoder):
     """
     Import the dataset getting the image paths (downloaded on BigTMP) and encoding the labels.
     Originally written as a group for the common pipeline. Later amended by Adam Jaamour.
@@ -52,17 +63,23 @@ def import_cbisddsm_training_dataset(label_encoder):
     :return: Two arrays, one for the image paths and one for the encoded labels.
     """
     print("Importing CBIS-DDSM training set")
-    cbis_ddsm_path = str()
-    if config.mammogram_type == "calc":
-        cbis_ddsm_path = "../data/CBIS-DDSM/calc-training.csv"
-    elif config.mammogram_type == "mass":
-        cbis_ddsm_path = "../data/CBIS-DDSM/mass-training.csv"
-    else:
-        cbis_ddsm_path = "../data/CBIS-DDSM/training.csv"
-    df = pd.read_csv(cbis_ddsm_path)
-    list_IDs = df['img_path'].values
-    labels = encode_labels(df['label'].values, label_encoder)
-    return list_IDs, labels
+    target_size = (224, 224, 3)
+    full_mass = import_cbis_dataset()
+
+    # Apply preprocessor to train data
+    full_mass['processed_images'] = full_mass['image_file_path'].apply(lambda x: image_processor(x, target_size))
+
+    class_mapper = {'MALIGNANT': 'MALIGNANT', 'BENIGN': 'BENIGN', 'BENIGN_WITHOUT_CALLBACK': 'BENIGN'} 
+    
+    # Convert the processed_images column to an array
+    images = np.array(full_mass['processed_images'].tolist())
+    
+    # Apply class mapper to pathology column
+    full_mass['labels'] = full_mass['pathology'].replace(class_mapper)
+    
+    
+    labels = encode_labels(full_mass['labels'].values, label_encoder)
+    return images, labels
 
 
 def import_cbisddsm_testing_dataset(label_encoder):

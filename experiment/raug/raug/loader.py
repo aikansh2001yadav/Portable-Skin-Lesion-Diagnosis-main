@@ -64,9 +64,9 @@ class MyDataset (data.Dataset):
         :return (tuple): a tuple containing the image, its label and meta-data (if applicable)
         """
 
-        image_data = self.imgs_path[item]
+        image = self.imgs_path[item]
 
-        image = Image.fromarray(image_data.squeeze()).convert("RGB")
+        # image = Image.fromarray(image_data.squeeze()).convert("RGB")
 
         image = self.transform(image)
         img_id = -1

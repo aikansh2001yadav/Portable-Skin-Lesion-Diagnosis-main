@@ -27,7 +27,7 @@ from sacred.observers import FileStorageObserver
 from raug.raug.utils.loader import get_labels_frequency
 
 from src.utils import create_label_encoder
-from src.data_operations.data_preprocessing import calculate_class_weights, import_minimias_dataset, dataset_stratified_split
+from src.data_operations.data_preprocessing import calculate_class_weights, import_cbisddsm_dataset, dataset_stratified_split
 from src.data_operations.data_transformations import generate_image_transforms
 import numpy as np
 import config
@@ -54,7 +54,7 @@ def cnfg():
     _neurons_reducer_block = 0
     _comb_method = None 
     _comb_config = None 
-    _batch_size = 2 
+    _batch_size = 128 
     _epochs = 10 
 
     # Training variables
@@ -67,7 +67,7 @@ def cnfg():
     _early_stop = 15 
     _weights = "frequency"
 
-    _model_name = 'mobilenet'
+    _model_name = 'resnet-50'
     
     _save_folder = "results/" + str(_comb_method) + "_" + _model_name + "_fold_" + str(_folder) #+ "_" + str(time.time()).replace('.', '')
 
@@ -93,21 +93,21 @@ def main (_folder, _csv_path_train, _imgs_folder_train, _csv_path_test, _imgs_fo
      # Create label encoder.
     l_e = create_label_encoder()
 
-    images, labels = import_minimias_dataset(data_dir="/content/drive/MyDrive/mini-MIAS/images_processed".format(config.dataset),
+    images, labels = import_cbisddsm_dataset(data_dir="/content/drive/MyDrive/mini-MIAS/images_processed".format(config.dataset),
                                                      label_encoder=l_e)
 
-    labels_before_data_aug = labels
-    images, labels = generate_image_transforms(images, labels)
-    labels_after_data_aug = labels
-    np.random.shuffle(labels)
+    # labels_before_data_aug = labels
+    # images, labels = generate_image_transforms(images, labels)
+    # labels_after_data_aug = labels
+    # np.random.shuffle(labels)
 
     # print(y_train_before_data_aug, y_train_after_data_aug)
 
-    def one_hot_to_label(one_hot_encoded):
-      return np.argmax(one_hot_encoded, axis=1)
+    # def one_hot_to_label(one_hot_encoded):
+    #   return np.argmax(one_hot_encoded, axis=1)
     
-    labels_before_data_aug = one_hot_to_label(labels_before_data_aug)
-    labels_after_data_aug = one_hot_to_label(labels_after_data_aug)
+    # labels_before_data_aug = one_hot_to_label(labels_before_data_aug)
+    # labels_after_data_aug = one_hot_to_label(labels_after_data_aug)
 
     # print("Before data augmentation:")
     # print(Counter(list(map(str, labels_before_data_aug))))
@@ -115,13 +115,16 @@ def main (_folder, _csv_path_train, _imgs_folder_train, _csv_path_test, _imgs_fo
     # print(Counter(list(map(str, labels_after_data_aug))))
 
     # Split dataset into training/test/validation sets (80/20% split).
-    X_train, X_test, y_train, y_test = dataset_stratified_split(split=0.20, dataset=images, labels=labels_after_data_aug)
+    X_train, X_test, y_train, y_test = dataset_stratified_split(split=0.20, dataset=images, labels=labels)
 
     # Create CNN model and split training/validation set (80/20% split). # older value is 25
     # model = CnnModel(config.model, l_e.classes_.size)
     X_train, X_val, y_train, y_val = dataset_stratified_split(split=0.15,
                                                                 dataset=X_train,
                                                                 labels=y_train)
+    
+    # Calculate class weights.
+    class_weights = calculate_class_weights(y_train, l_e)
   
     val_data_loader = get_data_loader (X_val, y_val, None, transform=ImgEvalTransform(),
                                         batch_size=_batch_size, shuf=True, num_workers=16, pin_memory=True)

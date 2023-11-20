@@ -7,3 +7,4 @@ experiment/isic/kd_losses/__pycache__/
 experiment/__pycache__/
 experiment/isic/__pycache__/
 experiment/isic/*.pbs
+archive
