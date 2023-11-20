@@ -54,7 +54,7 @@ def cnfg():
     _neurons_reducer_block = 0
     _comb_method = None 
     _comb_config = None 
-    _batch_size = 128 
+    _batch_size = 2 
     _epochs = 10 
 
     # Training variables
@@ -67,7 +67,7 @@ def cnfg():
     _early_stop = 15 
     _weights = "frequency"
 
-    _model_name = 'resnet-50'
+    _model_name = 'mobilenet'
     
     _save_folder = "results/" + str(_comb_method) + "_" + _model_name + "_fold_" + str(_folder) #+ "_" + str(time.time()).replace('.', '')
 
@@ -96,53 +96,53 @@ def main (_folder, _csv_path_train, _imgs_folder_train, _csv_path_test, _imgs_fo
     images, labels = import_minimias_dataset(data_dir="/content/drive/MyDrive/mini-MIAS/images_processed".format(config.dataset),
                                                      label_encoder=l_e)
 
-    # Split dataset into training/test/validation sets (80/20% split).
-    X_train, X_test, y_train, y_test = dataset_stratified_split(split=0.20, dataset=images, labels=labels)
+    labels_before_data_aug = labels
+    images, labels = generate_image_transforms(images, labels)
+    labels_after_data_aug = labels
+    np.random.shuffle(labels)
 
-    # Create CNN model and split training/validation set (80/20% split).
+    # print(y_train_before_data_aug, y_train_after_data_aug)
+
+    def one_hot_to_label(one_hot_encoded):
+      return np.argmax(one_hot_encoded, axis=1)
+    
+    labels_before_data_aug = one_hot_to_label(labels_before_data_aug)
+    labels_after_data_aug = one_hot_to_label(labels_after_data_aug)
+
+    # print("Before data augmentation:")
+    # print(Counter(list(map(str, labels_before_data_aug))))
+    # print("After data augmentation:")
+    # print(Counter(list(map(str, labels_after_data_aug))))
+
+    # Split dataset into training/test/validation sets (80/20% split).
+    X_train, X_test, y_train, y_test = dataset_stratified_split(split=0.20, dataset=images, labels=labels_after_data_aug)
+
+    # Create CNN model and split training/validation set (80/20% split). # older value is 25
     # model = CnnModel(config.model, l_e.classes_.size)
-    X_train, X_val, y_train, y_val = dataset_stratified_split(split=0.25,
+    X_train, X_val, y_train, y_val = dataset_stratified_split(split=0.15,
                                                                 dataset=X_train,
                                                                 labels=y_train)
-
-    # Calculate class weights.
-    _weights = calculate_class_weights(y_train, l_e)
-
-    # Data augmentation.
-    y_train_before_data_aug = y_train
-    X_train, y_train = generate_image_transforms(X_train, y_train)
-    y_train_after_data_aug = y_train
-    np.random.shuffle(y_train)
-
-    y_train_tensor = torch.tensor(y_train)  # Assuming y_train is a NumPy array
-    y_train_indices = torch.argmax(y_train_tensor, dim=1)
-    
-    y_val_tensor = torch.tensor(y_val)  # Assuming y_val is a NumPy array
-    y_val_indices = torch.argmax(y_val_tensor, dim=1)
-
-    y_test_tensor = torch.tensor(y_test)  # Assuming y_train is a NumPy array
-    y_test_indices = torch.argmax(y_test_tensor, dim=1)
-
-    val_data_loader = get_data_loader (X_val, y_val_indices, None, transform=ImgEvalTransform(),
+  
+    val_data_loader = get_data_loader (X_val, y_val, None, transform=ImgEvalTransform(),
                                         batch_size=_batch_size, shuf=True, num_workers=16, pin_memory=True)
     
-    train_data_loader = get_data_loader (X_train, y_train_indices, None, transform=ImgTrainTransform(),
+    train_data_loader = get_data_loader (X_train, y_train, None, transform=ImgTrainTransform(),
                                        batch_size=_batch_size, shuf=True, num_workers=16, pin_memory=True)
     
-    test_data_loader = get_data_loader(X_test, y_test_indices, None, transform=ImgEvalTransform(),
-                                        batch_size=_batch_size, shuf=False, num_workers=16, pin_memory=True)   
+    test_data_loader = get_data_loader(X_test, y_test, None, transform=ImgEvalTransform(),
+                                        batch_size=_batch_size, shuf=True, num_workers=16, pin_memory=True)   
 
-    if config.verbose_mode:
-        print("Before data augmentation:")
-        print(Counter(list(map(str, y_train_before_data_aug))))
-        print("After data augmentation:")
-        print(Counter(list(map(str, y_train_after_data_aug))))
+    # if config.verbose_mode:
+    #     print("Before data augmentation:")
+    #     print(Counter(list(map(str, y_train_before_data_aug))))
+    #     print("After data augmentation:")
+    #     print(Counter(list(map(str, y_train_after_data_aug))))
 
-    # Fit model.
-    if config.verbose_mode:
-        print("Training set size: {}".format(X_train.shape[0]))
-        print("Validation set size: {}".format(X_val.shape[0]))
-        print("Test set size: {}".format(X_test.shape[0]))
+    # # Fit model.
+    # if config.verbose_mode:
+    #     print("Training set size: {}".format(X_train.shape[0]))
+    #     print("Validation set size: {}".format(X_val.shape[0]))
+    #     print("Test set size: {}".format(X_test.shape[0]))
     # # Loading the csv file
     # csv_all_folders = pd.read_csv(_csv_path_train)
 
@@ -194,9 +194,10 @@ def main (_folder, _csv_path_train, _imgs_folder_train, _csv_path_test, _imgs_fo
     ####################################################################################################################
     # if _weights == 'frequency':
     #     _weights = (_freq.sum() / _freq).round(3)
-    weights_list = [v for v in _weights.values()]
-    weights_tensor = torch.Tensor(weights_list).cuda()
-    loss_fn = nn.CrossEntropyLoss(weight=torch.Tensor(weights_tensor).cuda())
+    # weights_list = [v for v in _weights.values()]
+    # weights_tensor = torch.Tensor(weights_list).cuda()
+    # weight=torch.Tensor(weights_tensor).cuda()
+    loss_fn = nn.CrossEntropyLoss()
     optimizer = optim.SGD(model.parameters(), lr=_lr_init, momentum=0.9, weight_decay=0.001)
     scheduler_lr = optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=_sched_factor, min_lr=_sched_min_lr,
                                                                     patience=_sched_patience)
