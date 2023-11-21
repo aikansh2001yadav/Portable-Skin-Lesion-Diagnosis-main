@@ -37,13 +37,13 @@ def import_cbis_dataset():
     roi_img_dict = dict()
 
     for dicom in full_mammo:
-        key = dicom.split("/")[5]
+        key = dicom.split("/")[6]
         full_mammo_dict[key] = dicom
     for dicom in cropped_images:
-        key = dicom.split("/")[5]
+        key = dicom.split("/")[6]
         cropped_images_dict[key] = dicom
     for dicom in roi_img:
-        key = dicom.split("/")[5]
+        key = dicom.split("/")[6]
         roi_img_dict[key] = dicom
 
     # print(next(iter((full_mammo_dict.items()))))
@@ -110,6 +110,7 @@ def import_cbis_dataset():
     # print(mass_test.isnull().sum())
 
     full_mass = pd.concat([mass_train, mass_test], axis=0)
+    print("Returning data from dataset_preparation method")
     # print(full_mass)
     return full_mass
 
