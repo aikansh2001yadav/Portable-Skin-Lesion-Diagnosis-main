@@ -67,12 +67,14 @@ def import_cbisddsm_dataset(label_encoder):
     full_mass = import_cbis_dataset()
 
     # Apply preprocessor to train data
+    print("Preprocessing images: Started")
     full_mass['processed_images'] = full_mass['image_file_path'].apply(lambda x: image_processor(x, target_size))
+    print("Preprocessing images: Ended")
 
     class_mapper = {'MALIGNANT': 'MALIGNANT', 'BENIGN': 'BENIGN', 'BENIGN_WITHOUT_CALLBACK': 'BENIGN'} 
     
     # Convert the processed_images column to an array
-    images = np.array(full_mass['processed_images'].tolist())
+    images = np.array(full_mass['processed_images'].tolist(), dtype="float32")
     
     # Apply class mapper to pathology column
     full_mass['labels'] = full_mass['pathology'].replace(class_mapper)

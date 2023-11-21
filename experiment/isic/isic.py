@@ -93,8 +93,7 @@ def main (_folder, _csv_path_train, _imgs_folder_train, _csv_path_test, _imgs_fo
      # Create label encoder.
     l_e = create_label_encoder()
 
-    images, labels = import_cbisddsm_dataset(data_dir="/content/drive/MyDrive/mini-MIAS/images_processed".format(config.dataset),
-                                                     label_encoder=l_e)
+    images, labels = import_cbisddsm_dataset(label_encoder=l_e)
 
     # labels_before_data_aug = labels
     # images, labels = generate_image_transforms(images, labels)
@@ -123,6 +122,8 @@ def main (_folder, _csv_path_train, _imgs_folder_train, _csv_path_test, _imgs_fo
                                                                 dataset=X_train,
                                                                 labels=y_train)
     
+    print("X_train shape", X_train.shape)
+    print("Y_train", y_train)
     # Calculate class weights.
     class_weights = calculate_class_weights(y_train, l_e)
   
@@ -141,11 +142,11 @@ def main (_folder, _csv_path_train, _imgs_folder_train, _csv_path_test, _imgs_fo
     #     print("After data augmentation:")
     #     print(Counter(list(map(str, y_train_after_data_aug))))
 
-    # # Fit model.
-    # if config.verbose_mode:
-    #     print("Training set size: {}".format(X_train.shape[0]))
-    #     print("Validation set size: {}".format(X_val.shape[0]))
-    #     print("Test set size: {}".format(X_test.shape[0]))
+    # Fit model.
+    
+    print("Training set size: {}".format(X_train.shape[0]))
+    print("Validation set size: {}".format(X_val.shape[0]))
+    print("Test set size: {}".format(X_test.shape[0]))
     # # Loading the csv file
     # csv_all_folders = pd.read_csv(_csv_path_train)
 
