@@ -125,7 +125,7 @@ def main (_folder, _csv_path_train, _imgs_folder_train, _csv_path_test, _imgs_fo
     print("X_train shape", X_train.shape)
     print("Y_train", y_train)
     # Calculate class weights.
-    class_weights = calculate_class_weights(y_train, l_e)
+    _weights = calculate_class_weights(y_train, l_e)
   
     val_data_loader = get_data_loader (X_val, y_val, None, transform=ImgEvalTransform(),
                                         batch_size=_batch_size, shuf=True, num_workers=16, pin_memory=True)
@@ -198,10 +198,10 @@ def main (_folder, _csv_path_train, _imgs_folder_train, _csv_path_test, _imgs_fo
     ####################################################################################################################
     # if _weights == 'frequency':
     #     _weights = (_freq.sum() / _freq).round(3)
-    # weights_list = [v for v in _weights.values()]
-    # weights_tensor = torch.Tensor(weights_list).cuda()
-    # weight=torch.Tensor(weights_tensor).cuda()
-    loss_fn = nn.CrossEntropyLoss()
+    weights_list = [v for v in _weights.values()]
+    weights_tensor = torch.Tensor(weights_list).cuda()
+    weight=torch.Tensor(weights_tensor).cuda()
+    loss_fn = nn.CrossEntropyLoss(weight)
     optimizer = optim.SGD(model.parameters(), lr=_lr_init, momentum=0.9, weight_decay=0.001)
     scheduler_lr = optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=_sched_factor, min_lr=_sched_min_lr,
                                                                     patience=_sched_patience)
