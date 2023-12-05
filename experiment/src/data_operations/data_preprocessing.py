@@ -186,24 +186,30 @@ def crop_roi_image(data_dir):
     labels = list()
 
     csv_dir = data_dir
-    images_dir = data_dir.split("_")[0] + "_png"
+    images_dir = "/home/aikansh_yadav/Documents/MTP Breast Cancer Detection/image_roi"
+    # print("Image dir", images_dir)
 
     df = pd.read_csv('/'.join(csv_dir.split('/')[:-1]) + '/data_description.csv', header=None)
+    # print("csv_df", '/'.join(csv_dir.split('/')[:-1]) + '/data_description.csv')
 
     for row in df.iterrows():
         # Skip normal cases.
-        if str(row[1][4]) == 'nan':
+        print(row[1][4], row[1][3], row[1][2], row[1][0])
+        if str(row[1][4]) == 'nan' and str(row[1][2].strip()) != 'NORM':
             continue
         if str(row[1][4]) == '*NOT':
             continue
 
         # Process image.
+        # print("image dir", images_dir + '/' + row[1][0] + '.png')
         image = preprocess_image(images_dir + '/' + row[1][0] + '.png')
 
         # Abnormal case: crop around tumour.
         y2 = 0
         x2 = 0
-        if row[1][2] != 'NORM':
+        if row[1][2].strip() != 'NORM':
+            # print(row[1][2], type(row[1][2]))
+            # print(repr(row[1][2]))
             y1 = image.shape[1] - int(row[1][5]) - 112
             if y1 < 0:
                 y1 = 0
@@ -231,14 +237,17 @@ def crop_roi_image(data_dir):
             x2 = int(image.shape[0] / 2 + 112)
 
         # Get label from CSV file.
+        print(repr(row[1][3]))
         label = "normal"
-        if str(row[1][3]) == 'B':
+        if str(row[1][3]).strip() == 'B':
             label = "benign"
-        elif str(row[1][3]) == 'M':
+        elif str(row[1][3]).strip() == 'M':
             label = "malignant"
 
         # Append image and label to lists.
         images.append(image[y1:y2, x1:x2, :])
         labels.append(label)
-
+    
+    print(images)
+    print(labels)
     return images, labels

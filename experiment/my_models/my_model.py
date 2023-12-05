@@ -4,9 +4,10 @@ from torchvision import models
 
 from mobilenet import MyMobilenet,extract_feats_mobilenet
 from resnet import MyResnet, extract_feats_resnet50
+from vgg19 import MyVgg19, extract_feats_vgg19
 
 
-_MODELS = ['resnet-50', 'mobilenet']
+_MODELS = ['resnet-50', 'mobilenet', 'vgg-19']
 
 _NORM_AND_SIZE = [[0.485, 0.456, 0.406], [0.229, 0.224, 0.225], [224, 224]]
 
@@ -29,6 +30,9 @@ def set_model (model_name, num_class, neurons_reducer_block=0, comb_method=None,
     elif model_name == 'mobilenet':
         model = MyMobilenet(models.mobilenet_v2(pretrained=pre_torch), num_class, neurons_reducer_block, freeze_conv,
                          comb_method=comb_method, comb_config=comb_config)
+    elif model_name == 'vgg-19':
+        model = MyVgg19(models.vgg19(pretrained=pre_torch), num_class, neurons_reducer_block, freeze_conv,
+                         comb_method=comb_method, comb_config=comb_config)
 
     return model
 
@@ -42,6 +46,8 @@ def get_activation_fn(model_name):
         activation_fn = extract_feats_resnet50
     elif model_name == 'mobilenet':
         activation_fn = extract_feats_mobilenet
+    elif model_name == 'vgg-19' :
+        activation_fn = extract_feats_vgg19
     else:
         raise
     return activation_fn
@@ -75,6 +81,9 @@ class ConvReg(nn.Module):
             self.conv = nn.ConvTranspose2d(s_C, t_C, kernel_size=4, stride=2, padding=1)
         elif s_H >= t_H:
             self.conv = nn.Conv2d(s_C, t_C, kernel_size=(1+s_H-t_H, 1+s_W-t_W))
+        elif s_H < t_H:
+            # Resizing condition when student's height is less than teacher's height
+            self.conv = nn.ConvTranspose2d(s_C, t_C, kernel_size=(1-s_H+t_H, 1-s_W+t_W))
         else:
             raise NotImplemented('student size {}, teacher size {}'.format(s_H, t_H))
         self.bn = nn.BatchNorm2d(t_C)

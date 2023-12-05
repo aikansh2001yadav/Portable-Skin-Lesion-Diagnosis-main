@@ -55,8 +55,8 @@ def cnfg():
     _neurons_reducer_block = 0
     _comb_method = None 
     _comb_config = None 
-    _batch_size = 128 
-    _epochs = 10 
+    _batch_size = 2 
+    _epochs = 100
 
     # Training variables
     _best_metric = "loss"
@@ -69,8 +69,8 @@ def cnfg():
     _weights = "frequency"
     _use_wce = True # default as True, Sept.10.21
 
-    _model_name_teacher = 'resnet-50'
-    _model_name_student = 'mobilenet'
+    _model_name_teacher = 'vgg-19'
+    _model_name_student = 'resnet-50'
 
     _kd_method = 'd_kd'    
 
@@ -110,7 +110,7 @@ def main (_folder, _csv_path_train, _imgs_folder_train, _csv_path_test, _imgs_fo
      # Create label encoder.
     l_e = create_label_encoder()
 
-    images, labels = import_minimias_dataset(data_dir="/content/drive/MyDrive/mini-MIAS/images_processed".format(config.dataset),
+    images, labels = import_minimias_dataset(data_dir="/home/aikansh_yadav/Documents/MTP Breast Cancer Detection/images_processed".format(config.dataset),
                                                      label_encoder=l_e)
 
     # Split dataset into training/test/validation sets (80/20% split).
@@ -307,6 +307,28 @@ def main (_folder, _csv_path_train, _imgs_folder_train, _csv_path_test, _imgs_fo
     
     loss_fn = D_KD(weight=wce_weight, _layers=_layers, module_list=trainable_list, lambd=_lambd, 
                     lambd_rkd=_lambd_drkd, lambd_crkd=_lambd_crkd).to(device)
+    
+    total_params = sum(
+	    param.numel() for param in models['model_t'].parameters()
+    )
+
+    trainable_params = sum(
+	p.numel() for p in models['model_t'].parameters() if p.requires_grad
+    )
+
+    print("Teacher total params : ", total_params)
+    print("Teacher trainable params : ", trainable_params)
+
+    total_params = sum(
+	    param.numel() for param in models['model_s'].parameters()
+    )
+
+    trainable_params = sum(
+	p.numel() for p in models['model_s'].parameters() if p.requires_grad
+    )
+
+    print("Student total params : ", total_params)
+    print("Student trainable params : ", trainable_params)
 
     ####################################################################################################################   
     print("- Starting the training phase...")

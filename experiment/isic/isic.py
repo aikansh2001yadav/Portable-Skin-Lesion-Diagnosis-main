@@ -55,7 +55,7 @@ def cnfg():
     _comb_method = None 
     _comb_config = None 
     _batch_size = 2 
-    _epochs = 10 
+    _epochs = 100 
 
     # Training variables
     _best_metric = "loss"
@@ -64,10 +64,10 @@ def cnfg():
     _sched_factor = 0.1
     _sched_min_lr = 1e-6
     _sched_patience = 10
-    _early_stop = 15 
+    _early_stop = 5 #15
     _weights = "frequency"
 
-    _model_name = 'mobilenet'
+    _model_name = 'vgg-19'
     
     _save_folder = "results/" + str(_comb_method) + "_" + _model_name + "_fold_" + str(_folder) #+ "_" + str(time.time()).replace('.', '')
 
@@ -93,13 +93,13 @@ def main (_folder, _csv_path_train, _imgs_folder_train, _csv_path_test, _imgs_fo
      # Create label encoder.
     l_e = create_label_encoder()
 
-    images, labels = import_minimias_dataset(data_dir="/content/drive/MyDrive/mini-MIAS/images_processed".format(config.dataset),
+    images, labels = import_minimias_dataset(data_dir="/home/aikansh_yadav/Documents/MTP Breast Cancer Detection/images_processed".format(config.dataset),
                                                      label_encoder=l_e)
 
     labels_before_data_aug = labels
-    images, labels = generate_image_transforms(images, labels)
+    # images, labels = generate_image_transforms(images, labels)
     labels_after_data_aug = labels
-    np.random.shuffle(labels)
+    # np.random.shuffle(labels)
 
     # print(y_train_before_data_aug, y_train_after_data_aug)
 
@@ -111,7 +111,7 @@ def main (_folder, _csv_path_train, _imgs_folder_train, _csv_path_test, _imgs_fo
 
     # print("Before data augmentation:")
     # print(Counter(list(map(str, labels_before_data_aug))))
-    # print("After data augmentation:")
+    # print("After data augmentation:")Teacher
     # print(Counter(list(map(str, labels_after_data_aug))))
 
     # Split dataset into training/test/validation sets (80/20% split).
@@ -203,8 +203,21 @@ def main (_folder, _csv_path_train, _imgs_folder_train, _csv_path_test, _imgs_fo
                                                                     patience=_sched_patience)
     ####################################################################################################################
 
+    total_params = sum(
+	    param.numel() for param in model.parameters()
+    )
+
+    trainable_params = sum(
+	p.numel() for p in model.parameters() if p.requires_grad
+    )
+
+    print("Total params : ", total_params)
+    print("Trainable params : ", trainable_params)
+
     print("- Starting the training phase...")
     print("-" * 50)
+
+
     
     fit_model (model, train_data_loader, val_data_loader, optimizer=optimizer, loss_fn=loss_fn, epochs=_epochs,
                epochs_early_stop=_early_stop, save_folder=_save_folder, initial_model=None,
