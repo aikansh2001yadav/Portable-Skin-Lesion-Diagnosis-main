@@ -36,3 +36,20 @@ is_roi = True              # Use cropped version of the images
 verbose_mode = True      # Boolean used to print additional logs for debugging purposes.
 name = ""                   # Name of experiment.
 # is_grid_search = False    # Run the grid search algorithm to determine the optimal hyper-parameters for the model.
+
+#CAT-KD config
+IF_NORMALIZE = True
+onlyCAT = False
+IF_BINARIZE = False
+
+IF_OnlyTransferPartialCAMs = False
+CAMs_Nums = 100
+Strategy = 0
+
+# LOSS = CN()
+CE_WEIGHT = 1.0
+CAT_loss_weight = 400.0
+CAM_RESOLUTION = 2
+
+teacher_dir = None
+student_dir = None
