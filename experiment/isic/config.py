@@ -33,6 +33,6 @@ batch_size = 2              # Batch size.
 max_epoch_frozen = 10      # Max number of epochs when original CNN layers are frozen.
 max_epoch_unfrozen = 10     # Max number of epochs when original CNN layers are unfrozen.
 is_roi = True              # Use cropped version of the images
-verbose_mode = False      # Boolean used to print additional logs for debugging purposes.
+verbose_mode = True      # Boolean used to print additional logs for debugging purposes.
 name = ""                   # Name of experiment.
 # is_grid_search = False    # Run the grid search algorithm to determine the optimal hyper-parameters for the model.

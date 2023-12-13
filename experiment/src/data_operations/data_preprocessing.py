@@ -194,7 +194,7 @@ def crop_roi_image(data_dir):
 
     for row in df.iterrows():
         # Skip normal cases.
-        print(row[1][4], row[1][3], row[1][2], row[1][0])
+        # print(row[1][4], row[1][3], row[1][2], row[1][0])
         if str(row[1][4]) == 'nan' and str(row[1][2].strip()) != 'NORM':
             continue
         if str(row[1][4]) == '*NOT':
@@ -237,7 +237,7 @@ def crop_roi_image(data_dir):
             x2 = int(image.shape[0] / 2 + 112)
 
         # Get label from CSV file.
-        print(repr(row[1][3]))
+        # print(repr(row[1][3]))
         label = "normal"
         if str(row[1][3]).strip() == 'B':
             label = "benign"
@@ -248,6 +248,6 @@ def crop_roi_image(data_dir):
         images.append(image[y1:y2, x1:x2, :])
         labels.append(label)
     
-    print(images)
-    print(labels)
+    # print(images)
+    # print(labels)
     return images, labels
