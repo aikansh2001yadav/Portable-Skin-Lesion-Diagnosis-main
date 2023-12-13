@@ -19,11 +19,11 @@ def gram_matrix(features, normalize=True):
         return G
 
 
-class D_KD(nn.Module):
+class D_CAT_KD(nn.Module):
     def __init__(self, weight, _layers, module_list, lambd=0.5, T=5, 
                 lambd_rkd=1.0, w_dist=25.0, w_angle=50.0, 
                 lambd_crkd=1e4, device='cuda:0'):
-        super(D_KD, self).__init__()
+        super(D_CAT_KD, self).__init__()
         self.lambd = lambd
         self.lambd_rkd = lambd_rkd
         self.lambd_crkd = lambd_crkd
@@ -75,8 +75,8 @@ class D_KD(nn.Module):
         loss_crkd = self.cr_dist(feat_s_conv, feat_t)  
 
         #CAT      
-        tea = feat_t["feats"][-1]
-        stu = feat_s["feats"][-1]
+        tea = feat_t
+        stu = feat_s
                         
         # perform binarization
         if self.IF_BINARIZE:
@@ -99,18 +99,6 @@ class D_KD(nn.Module):
                     mask = self.relu(logits_t-l).bool()
                     mask = ~mask.unsqueeze(-1).reshape(n,c,1,1)
             tea,stu = _mask(tea,stu,mask)
-
-         
-        # if self.onlyCAT is False:
-        #     loss_ce = self.ce_loss_weight * F.cross_entropy(logits_s, target)
-        #     losses_dict = {
-        #         "loss_CE": loss_ce,
-        #         "loss_CAT": loss_feat,
-        #     }
-        # else:
-        #     losses_dict = {
-        #         "loss_CAT": loss_feat,
-        #     }
  
         loss = (1 - self.lambd) * loss_cls + self.lambd * self.T * self.T * loss_blkd + \
                     self.lambd_rkd * loss_rkd + self.lambd_crkd * loss_crkd + self.CAT_loss_weight * CAT_loss(
@@ -169,30 +157,30 @@ class D_KD(nn.Module):
 
         return feat_dist
     
-    def _Normalize(feat,IF_NORMALIZE):
-        if IF_NORMALIZE:
-            feat = F.normalize(feat,dim=(2,3))
-        return feat
+def _Normalize(feat,IF_NORMALIZE):
+    if IF_NORMALIZE:
+        feat = F.normalize(feat,dim=(2,3))
+    return feat
 
-    def CAT_loss(CAM_Student, CAM_Teacher, CAM_RESOLUTION, IF_NORMALIZE):   
-        CAM_Student = F.adaptive_avg_pool2d(CAM_Student, (CAM_RESOLUTION, CAM_RESOLUTION))
-        CAM_Teacher = F.adaptive_avg_pool2d(CAM_Teacher, (CAM_RESOLUTION, CAM_RESOLUTION))
-        loss = F.mse_loss(_Normalize(CAM_Student, IF_NORMALIZE), _Normalize(CAM_Teacher, IF_NORMALIZE))
-        return loss
+def CAT_loss(CAM_Student, CAM_Teacher, CAM_RESOLUTION, IF_NORMALIZE): 
+    CAM_Student = F.adaptive_avg_pool2d(CAM_Student, (CAM_RESOLUTION, CAM_RESOLUTION))
+    CAM_Teacher = F.adaptive_avg_pool2d(CAM_Teacher, (CAM_RESOLUTION, CAM_RESOLUTION))
+    loss = F.mse_loss(_Normalize(CAM_Student, IF_NORMALIZE), _Normalize(CAM_Teacher, IF_NORMALIZE))
+    return loss
     
 
-    def _mask(tea,stu,mask):
-        n,c,w,h = tea.shape
-        mid = torch.ones(n,c,w,h).cuda()
-        mask_temp = mask.view(n,c,1,1)*mid.bool()
-        t=torch.masked_select(tea, mask_temp)
-        
-        if (len(t))%(n*w*h)!=0:
-            return tea, stu
+def _mask(tea,stu,mask):
+    n,c,w,h = tea.shape
+    mid = torch.ones(n,c,w,h).cuda()
+    mask_temp = mask.view(n,c,1,1)*mid.bool()
+    t=torch.masked_select(tea, mask_temp)
+    
+    if (len(t))%(n*w*h)!=0:
+        return tea, stu
 
-        n,c,w_stu,h_stu = stu.shape
-        mid = torch.ones(n,c,w_stu,h_stu).cuda()
-        mask = mask.view(n,c,1,1)*mid.bool()
-        stu=torch.masked_select(stu, mask)
-        
-        return t.view(n,-1,w,h), stu.view(n,-1,w_stu,h_stu)
+    n,c,w_stu,h_stu = stu.shape
+    mid = torch.ones(n,c,w_stu,h_stu).cuda()
+    mask = mask.view(n,c,1,1)*mid.bool()
+    stu=torch.masked_select(stu, mask)
+    
+    return t.view(n,-1,w,h), stu.view(n,-1,w_stu,h_stu)

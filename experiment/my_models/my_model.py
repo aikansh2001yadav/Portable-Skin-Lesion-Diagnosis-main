@@ -81,9 +81,6 @@ class ConvReg(nn.Module):
             self.conv = nn.ConvTranspose2d(s_C, t_C, kernel_size=4, stride=2, padding=1)
         elif s_H >= t_H:
             self.conv = nn.Conv2d(s_C, t_C, kernel_size=(1+s_H-t_H, 1+s_W-t_W))
-        elif s_H < t_H:
-            # Resizing condition when student's height is less than teacher's height
-            self.conv = nn.ConvTranspose2d(s_C, t_C, kernel_size=(1-s_H+t_H, 1-s_W+t_W))
         else:
             raise NotImplemented('student size {}, teacher size {}'.format(s_H, t_H))
         self.bn = nn.BatchNorm2d(t_C)

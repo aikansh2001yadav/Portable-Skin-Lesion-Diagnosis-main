@@ -25,7 +25,8 @@ from raug.raug.train_kd import fit_model_kd
 from raug.raug.eval_kd import test_model_kd
 
 from my_model import set_model, get_activation_fn, get_activations, ConvReg
-from kd_losses import D_KD
+from kd_losses import D_CAT_KD
+from kd_losses.dkd_cat import D_CAT_KD
 
 from src.utils import create_label_encoder
 from src.data_operations.data_preprocessing import calculate_class_weights, import_minimias_dataset, dataset_stratified_split
@@ -305,7 +306,7 @@ def main (_folder, _csv_path_train, _imgs_folder_train, _csv_path_test, _imgs_fo
     else:
         wce_weight=None
     
-    loss_fn = D_KD(weight=wce_weight, _layers=_layers, module_list=trainable_list, lambd=_lambd, 
+    loss_fn = D_CAT_KD(weight=wce_weight, _layers=_layers, module_list=trainable_list, lambd=_lambd, 
                     lambd_rkd=_lambd_drkd, lambd_crkd=_lambd_crkd).to(device)
     
     total_params = sum(
