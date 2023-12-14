@@ -40,13 +40,13 @@ def import_cbis_dataset_mass():
     roi_img_dict = dict()
 
     for dicom in full_mammo:
-        key = dicom.split("/")[7]
+        key = dicom.split("/")[6]
         full_mammo_dict[key] = dicom
     for dicom in cropped_images:
-        key = dicom.split("/")[7]
+        key = dicom.split("/")[6]
         cropped_images_dict[key] = dicom
     for dicom in roi_img:
-        key = dicom.split("/")[7]
+        key = dicom.split("/")[6]
         roi_img_dict[key] = dicom
 
     # print(next(iter((full_mammo_dict.items()))))
@@ -90,8 +90,8 @@ def import_cbis_dataset_mass():
     #check null values
     # print(mass_train.isnull().sum())
 
-    print(f'Shape of mass_train: {mass_train.shape}')
-    print(f'Shape of mass_test: {mass_test.shape}')
+    # print(f'Shape of mass_train: {mass_train.shape}')
+    # print(f'Shape of mass_test: {mass_test.shape}')
 
     mass_test = mass_test.rename(columns={'left or right breast': 'left_or_right_breast',
                                            'image view': 'image_view',
@@ -149,13 +149,13 @@ def import_cbis_dataset_calc():
     roi_img_dict = dict()
 
     for dicom in full_mammogram_images:
-        key = dicom.split("/")[7]
+        key = dicom.split("/")[6]
         full_mammo_dict[key] = dicom
     for dicom in cropped_images:
-        key = dicom.split("/")[7]
+        key = dicom.split("/")[6]
         cropped_images_dict[key] = dicom
     for dicom in ROI_mask_images:
-        key = dicom.split("/")[7]
+        key = dicom.split("/")[6]
         roi_img_dict[key] = dicom
 
     calc_train = pd.read_csv(csv_root + '/' + 'calc_case_description_train_set.csv')
@@ -234,14 +234,17 @@ def import_cbis_dataset_calc():
 
 def import_cbis_dataset():
     if(config.mammogram_type == "Mass"):
-        return import_cbis_dataset_mass
+        print("Mammography type : Mass")
+        return import_cbis_dataset_mass()
     elif(config.mammogram_type == "Calc"):
-        return import_cbis_dataset_calc
+        print("Mammography type : Calc")
+        return import_cbis_dataset_calc()
     else:
-        mass = import_cbis_dataset_mass
-        calc = import_cbis_dataset_calc
+        mass = import_cbis_dataset_mass()
+        calc = import_cbis_dataset_calc()
+        print("Mammography type : All")
         all = pd.concat([mass, calc], axis=0)
         return all
 
-if __name__ == '__main__':
-    import_cbis_dataset()
+# if __name__ == '__main__':
+#     import_cbis_dataset()
