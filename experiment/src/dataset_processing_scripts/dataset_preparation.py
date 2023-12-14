@@ -4,10 +4,10 @@ import pandas as pd
 import config
 
 def import_cbis_dataset_mass():
-    # csv_root = '/content/drive/MyDrive/archive/csv'
-    # img_root = '/content/drive/MyDrive/archive/jpeg'
-    csv_root = '/Users/aikansh_yadav/Documents/Portable-Skin-Lesion-Diagnosis-main/archive/csv'
-    img_root = '/Users/aikansh_yadav/Documents/Portable-Skin-Lesion-Diagnosis-main/archive/jpeg'
+    csv_root = '/content/drive/MyDrive/archive/csv'
+    img_root = '/content/drive/MyDrive/archive/jpeg'
+    # csv_root = '/Users/aikansh_yadav/Documents/Portable-Skin-Lesion-Diagnosis-main/archive/csv'
+    # img_root = '/Users/aikansh_yadav/Documents/Portable-Skin-Lesion-Diagnosis-main/archive/jpeg'
     
     df_dicom = pd.read_csv(csv_root + '/' + 'dicom_info.csv')
 
@@ -118,8 +118,10 @@ def import_cbis_dataset_mass():
     return full_mass
 
 def import_cbis_dataset_calc():
-    csv_root = '/Users/aikansh_yadav/Documents/Portable-Skin-Lesion-Diagnosis-main/archive/csv'
-    img_root = '/Users/aikansh_yadav/Documents/Portable-Skin-Lesion-Diagnosis-main/archive/jpeg'
+    csv_root = '/content/drive/MyDrive/archive/csv'
+    img_root = '/content/drive/MyDrive/archive/jpeg'
+    # csv_root = '/Users/aikansh_yadav/Documents/Portable-Skin-Lesion-Diagnosis-main/archive/csv'
+    # img_root = '/Users/aikansh_yadav/Documents/Portable-Skin-Lesion-Diagnosis-main/archive/jpeg'
 
     df_dicom = pd.read_csv(csv_root + '/' + 'dicom_info.csv')
 
